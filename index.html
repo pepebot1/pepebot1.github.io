@@ -1,470 +1,336 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FDI Airdrop Claim</title>
-    <!-- Farcaster Frame metadata -->
-<meta property="fc:frame" content="vNext" />
-<meta property="og:title" content="FDI Airdrop Claim" />
-<meta property="og:image" content="https://airdropfdi.github.io/fdi-claim/preview.png" />
-<meta property="fc:frame:image" content="https://airdropfdi.github.io/fdi-claim/preview.png" />
-<meta property="fc:frame:button:1" content="Claim FDI" />
-<meta property="fc:frame:post_url" content="https://airdropfdi.github.io/fdi-claim/claim-endpoint" />
-<meta property="fc:frame:button:2" content="Learn More" />
-<meta property="fc:frame:button:2:target" content="https://airdropfdi.github.io/fdi-claim/" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            position: relative;
-            background: #000;
-        }
-        
-        /* Animated GIF Background */
-        .bg-gif {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: -1;
-        }
-        
-        /* Overlay to improve readability */
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: -1;
-        }
-        
-        .container {
-            width: 100%;
-            max-width: 380px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            max-height: 90vh;
-            overflow: hidden;
-        }
-        
-        .card {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 16px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-            overflow: hidden;
-            padding: 20px;
-            text-align: center;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            transform: translateY(0);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            width: 100%;
-            margin: 10px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        
-        .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
-        }
-        
-        .logo {
-            width: 60px;
-            height: 60px;
-            margin: 0 auto 10px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 24px;
-            overflow: hidden;
-        }
-        
-        .logo img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        h1 {
-            color: #333;
-            margin-bottom: 8px;
-            font-size: 22px;
-        }
-        
-        .subtitle {
-            color: #444;
-            margin-bottom: 20px;
-            font-size: 14px;
-            line-height: 1.4;
-            font-weight: 500;
-        }
-        
-        .token-info {
-            background: linear-gradient(to right, rgba(243, 244, 246, 0.7), rgba(229, 231, 235, 0.7));
-            border-radius: 10px;
-            padding: 15px;
-            margin: 15px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .token-amount {
-            font-size: 26px;
-            font-weight: 700;
-            color: #6e8efb;
-        }
-        
-        .token-symbol {
-            font-size: 16px;
-            color: #444;
-            font-weight: 600;
-        }
-        
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin: 20px 0;
-        }
-        
-        .info-item {
-            background: rgba(248, 249, 250, 0.7);
-            padding: 12px;
-            border-radius: 10px;
-            text-align: center;
-        }
-        
-        .info-label {
-            font-size: 12px;
-            color: #555;
-            margin-bottom: 4px;
-            font-weight: 500;
-        }
-        
-        .info-value {
-            font-size: 16px;
-            font-weight: 600;
-            color: #222;
-        }
-        
-        .claim-button {
-            background: linear-gradient(to right, #6e8efb, #a777e3);
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(110, 142, 251, 0.4);
-        }
-        
-        .claim-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(110, 142, 251, 0.6);
-        }
-        
-        .claim-button:active {
-            transform: translateY(0);
-        }
-        
-        .claim-button.claimed {
-            background: linear-gradient(to right, #4ade80, #22c55e);
-            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
-        }
-        
-        .status {
-            margin-top: 15px;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 13px;
-            display: none;
-        }
-        
-        .status.success {
-            background: rgba(220, 252, 231, 0.8);
-            color: #166534;
-            display: block;
-        }
-        
-        .status.error {
-            background: rgba(254, 226, 226, 0.8);
-            color: #b91c1c;
-            display: block;
-        }
-        
-        .wallet-address {
-            margin-top: 12px;
-            font-size: 13px;
-            color: #444;
-            word-break: break-all;
-            font-weight: 500;
-        }
-        
-        .terms {
-            margin-top: 20px;
-            font-size: 11px;
-            color: #444;
-            line-height: 1.4;
-        }
-        
-        .terms a {
-            color: #6e8efb;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        
-        .card::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        .card::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
-        
-        .card::-webkit-scrollbar-thumb {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
-        }
-        
-        .card::-webkit-scrollbar-thumb:hover {
-            background: rgba(0, 0, 0, 0.3);
-        }
-        
-        @media (max-width: 400px) {
-            .container {
-                max-width: 340px;
-            }
-            
-            .card {
-                padding: 15px;
-            }
-            
-            h1 {
-                font-size: 20px;
-            }
-            
-            .token-amount {
-                font-size: 24px;
-            }
-            
-            .info-grid {
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
-            
-            .claim-button {
-                padding: 12px;
-                font-size: 15px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <!-- Animated GIF Background -->
-    <img src="https://iili.io/KISxJet.gif" class="bg-gif" alt="Animated background">
-    <div class="overlay"></div>
-    
-    <div class="container">
-        <div class="card">
-            <div class="logo">
-                <img src="https://iili.io/KISbmVn.png" alt="FDI Logo">
-            </div>
-            <h1>FDI Airdrop</h1>
-            <p class="subtitle">You're eligible to claim your FDI token airdrop for being an early Farcaster supporter!</p>
-            
-            <div class="token-info">
-                <div>
-                    <div class="info-label">You receive</div>
-                    <div class="token-amount">3000</div>
-                </div>
-                <div class="token-symbol">FDI</div>
-            </div>
-            
-            <div class="info-grid">
-                <div class="info-item">
-                    <div class="info-label">Value</div>
-                    <div class="info-value">$120</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Network</div>
-                    <div class="info-value">Base</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Lockup</div>
-                    <div class="info-value">0 days</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Delegation</div>
-                    <div class="info-value">Available</div>
-                </div>
-            </div>
-            
-            <button class="claim-button" id="claimButton">
-                <i class="fas fa-gift"></i> Claim Airdrop
-            </button>
-            
-            <div class="status" id="statusMessage"></div>
-            
-            <div class="wallet-address" id="walletAddress">
-                Not connected
-            </div>
-            
-            <div class="terms">
-                By claiming, you agree to our <a href="#">Terms of Service</a> and acknowledge that you have read our <a href="#">Privacy Policy</a>. This airdrop is subject to eligibility requirements.
-            </div>
-        </div>
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NFT Layer Studio</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Outfit:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Outfit', sans-serif; }
+    .mono { font-family: 'Space Mono', monospace; }
+    .nft-card { background: linear-gradient(145deg, #1a1a2e, #16213e); border: 1px solid #2a2a4a; }
+    .layer-card { background: #1a1a2e; border: 1px solid #2a2a4a; }
+    .glow { box-shadow: 0 0 20px rgba(99, 102, 241, 0.15); }
+    .tab-active { background: #6366f1; color: white; }
+    .tab-inactive { background: #1a1a2e; color: #94a3b8; }
+    input[type="file"]::file-selector-button {
+      background: #6366f1; color: white; border: none; padding: 8px 16px;
+      border-radius: 8px; cursor: pointer; font-family: 'Outfit', sans-serif;
+    }
+    .layer-preview img { image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.3s ease; }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+ </head>
+ <body class="h-full bg-[#0f0f1a] text-[#e2e8f0] overflow-auto">
+  <div id="app" class="w-full h-full flex flex-col"><!-- Header -->
+   <header class="p-4 border-b border-[#2a2a4a] flex items-center justify-between">
+    <h1 id="app-title" class="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">NFT Layer Studio</h1><span class="mono text-xs text-slate-500">v1.0</span>
+   </header><!-- Tabs -->
+   <div class="flex p-3 gap-2"><button onclick="switchTab('layers')" id="tab-layers" class="tab-active px-4 py-2 rounded-lg text-sm font-medium transition-all">Layers</button> <button onclick="switchTab('create')" id="tab-create" class="tab-inactive px-4 py-2 rounded-lg text-sm font-medium transition-all">Create NFT</button> <button onclick="switchTab('collection')" id="tab-collection" class="tab-inactive px-4 py-2 rounded-lg text-sm font-medium transition-all">Collection</button>
+   </div><!-- Content -->
+   <div class="flex-1 overflow-auto p-4"><!-- Layers Tab -->
+    <div id="panel-layers" class="space-y-4">
+     <div class="flex items-center gap-3"><label class="flex-1 relative"> <input type="file" id="layer-upload" accept="image/*" multiple class="w-full text-sm text-slate-400 file:mr-3"> </label>
+     </div><input type="text" id="layer-name" placeholder="Layer name (optional)" class="w-full bg-[#1a1a2e] border border-[#2a2a4a] rounded-lg px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"> <button onclick="addLayer()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg py-3 font-medium transition-all flex items-center justify-center gap-2"> <i data-lucide="plus" style="width:18px;height:18px"></i> Add Layer </button>
+     <div id="layers-list" class="grid grid-cols-2 gap-3 mt-4"></div>
+     <p id="layers-empty" class="text-center text-slate-500 text-sm py-8">No layers yet. Upload images to get started.</p>
+    </div><!-- Create Tab -->
+    <div id="panel-create" class="space-y-4 hidden">
+     <p class="text-sm text-slate-400 mb-2">Select layers to combine into an NFT:</p>
+     <div id="create-layers-list" class="grid grid-cols-3 gap-3"></div><input type="text" id="nft-name" placeholder="NFT Name" class="w-full bg-[#1a1a2e] border border-[#2a2a4a] rounded-lg px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"> <button onclick="createNFT()" id="btn-create-nft" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg py-3 font-medium transition-all"> Generate NFT </button>
+     <div id="create-preview" class="hidden mt-4"></div>
+    </div><!-- Collection Tab -->
+    <div id="panel-collection" class="space-y-4 hidden">
+     <div id="nft-count" class="text-sm text-slate-400"></div>
+     <div id="nft-list" class="grid grid-cols-1 gap-4"></div>
+     <p id="nft-empty" class="text-center text-slate-500 text-sm py-8">No NFTs created yet.</p>
     </div>
+   </div><!-- Toast -->
+   <div id="toast" class="fixed bottom-4 left-4 right-4 bg-indigo-600 text-white px-4 py-3 rounded-lg text-sm text-center hidden transition-all z-50"></div>
+  </div>
+  <script>
+    // State
+    let layers = []; // { id, name, dataUrl }
+    let selectedLayers = new Set();
+    let nfts = []; // from Data SDK
+    let currentTab = 'layers';
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const claimButton = document.getElementById('claimButton');
-            const statusMessage = document.getElementById('statusMessage');
-            const walletAddressEl = document.getElementById('walletAddress');
-            
-            // Contract details (replace with actual contract address and ABI)
-            const tokenAddress = "0xBFD0dfd7df11480aEC296f090a95d8A0e2Ecb8C6";
-            const tokenABI = [
-                "function balanceOf(address owner) view returns (uint256)",
-                "function transfer(address to, uint amount) returns (bool)",
-                "function claimAirdrop() external"
-            ];
-            
-            let signer;
-            let userAddress;
-            
-            // Initialize connection
-            async function init() {
-                if (window.ethereum) {
-                    try {
-                        // Request account access
-                        await window.ethereum.request({ method: 'eth_requestAccounts' });
-                        const provider = new ethers.BrowserProvider(window.ethereum);
-                        signer = await provider.getSigner();
-                        userAddress = await signer.getAddress();
-                        
-                        // Display truncated wallet address
-                        const truncatedAddress = userAddress.substring(0, 6) + '...' + userAddress.substring(userAddress.length - 4);
-                        walletAddressEl.textContent = "Connected: " + truncatedAddress;
-                        
-                        // Check if already claimed
-                        await checkClaimStatus();
-                    } catch (error) {
-                        console.error("User rejected connection:", error);
-                        statusMessage.textContent = 'Please connect your wallet to claim.';
-                        statusMessage.classList.add('error');
-                        statusMessage.style.display = 'block';
-                    }
-                } else {
-                    statusMessage.textContent = 'Web3 wallet not found. Please install MetaMask or another compatible wallet.';
-                    statusMessage.classList.add('error');
-                    statusMessage.style.display = 'block';
-                    claimButton.disabled = true;
-                }
-            }
-            
-            // Check if user has already claimed
-            async function checkClaimStatus() {
-                try {
-                    const provider = new ethers.BrowserProvider(window.ethereum);
-                    const contract = new ethers.Contract(tokenAddress, tokenABI, provider);
-                    
-                    // Check balance (assuming 3000 tokens is the airdrop amount)
-                    const balance = await contract.balanceOf(userAddress);
-                    if (balance >= ethers.parseUnits("3000", 18)) {
-                        claimButton.classList.add('claimed');
-                        claimButton.innerHTML = '<i class="fas fa-check-circle"></i> Already Claimed';
-                        claimButton.disabled = true;
-                        statusMessage.textContent = 'You have already claimed your FDI airdrop.';
-                        statusMessage.classList.add('success');
-                        statusMessage.style.display = 'block';
-                    }
-                } catch (error) {
-                    console.error("Error checking claim status:", error);
-                }
-            }
-            
-            // Claim airdrop function
-            async function claimAirdrop() {
-                if (!signer) {
-                    await init();
-                    if (!signer) return; // Failed to connect
-                }
-                
-                claimButton.disabled = true;
-                claimButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-                
-                try {
-                    const contract = new ethers.Contract(tokenAddress, tokenABI, signer);
-                    
-                    // Call the claimAirdrop function
-                    const tx = await contract.claimAirdrop();
-                    
-                    statusMessage.textContent = 'Transaction submitted. Waiting for confirmation...';
-                    statusMessage.classList.remove('error', 'success');
-                    statusMessage.style.display = 'block';
-                    
-                    // Wait for transaction to be mined
-                    const receipt = await tx.wait();
-                    
-                    // Success
-                    claimButton.classList.add('claimed');
-                    claimButton.innerHTML = '<i class="fas fa-check-circle"></i> Claimed Successfully!';
-                    statusMessage.textContent = 'Your 3,000 FDI tokens have been transferred to your wallet.';
-                    statusMessage.classList.add('success');
-                    
-                } catch (error) {
-                    console.error("Claim error:", error);
-                    
-                    if (error.code === 'ACTION_REJECTED') {
-                        statusMessage.textContent = 'Transaction was rejected.';
-                    } else if (error.reason) {
-                        statusMessage.textContent = error.reason;
-                    } else {
-                        statusMessage.textContent = 'Transaction failed. Please try again.';
-                    }
-                    
-                    statusMessage.classList.add('error');
-                    claimButton.innerHTML = '<i class="fas fa-gift"></i> Try Again';
-                    claimButton.disabled = false;
-                }
-            }
-            
-            // Initialize on load if already connected
-            if (window.ethereum && window.ethereum.selectedAddress) {
-                init();
-            }
-            
-            // Add click event to claim button
-            claimButton.addEventListener('click', claimAirdrop);
+    const defaultConfig = {
+      app_title: 'NFT Layer Studio',
+      primary_color: '#6366f1',
+      background_color: '#0f0f1a',
+      surface_color: '#1a1a2e',
+      text_color: '#e2e8f0',
+      accent_color: '#a78bfa'
+    };
+
+    // Element SDK
+    window.elementSdk.init({
+      defaultConfig,
+      onConfigChange: async (config) => {
+        const title = config.app_title || defaultConfig.app_title;
+        document.getElementById('app-title').textContent = title;
+      },
+      mapToCapabilities: (config) => ({
+        recolorables: [
+          { get: () => config.background_color || defaultConfig.background_color, set: (v) => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); document.body.style.backgroundColor = v; } },
+          { get: () => config.surface_color || defaultConfig.surface_color, set: (v) => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); } },
+          { get: () => config.text_color || defaultConfig.text_color, set: (v) => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); document.body.style.color = v; } },
+          { get: () => config.primary_color || defaultConfig.primary_color, set: (v) => { config.primary_color = v; window.elementSdk.setConfig({ primary_color: v }); } },
+          { get: () => config.accent_color || defaultConfig.accent_color, set: (v) => { config.accent_color = v; window.elementSdk.setConfig({ accent_color: v }); } }
+        ],
+        borderables: [],
+        fontEditable: {
+          get: () => config.font_family || 'Outfit',
+          set: (v) => { config.font_family = v; window.elementSdk.setConfig({ font_family: v }); document.body.style.fontFamily = `${v}, sans-serif`; }
+        },
+        fontSizeable: undefined
+      }),
+      mapToEditPanelValues: (config) => new Map([
+        ["app_title", config.app_title || defaultConfig.app_title]
+      ])
+    });
+
+    // Data SDK
+    const dataHandler = {
+      onDataChanged(data) {
+        nfts = data;
+        renderCollection();
+      }
+    };
+
+    (async () => {
+      const r = await window.dataSdk.init(dataHandler);
+      if (!r.isOk) console.error('Data SDK init failed');
+    })();
+
+    // Tab switching
+    function switchTab(tab) {
+      currentTab = tab;
+      ['layers', 'create', 'collection'].forEach(t => {
+        document.getElementById(`panel-${t}`).classList.toggle('hidden', t !== tab);
+        document.getElementById(`tab-${t}`).className = t === tab ? 'tab-active px-4 py-2 rounded-lg text-sm font-medium transition-all' : 'tab-inactive px-4 py-2 rounded-lg text-sm font-medium transition-all';
+      });
+      if (tab === 'create') renderCreateLayers();
+    }
+
+    // Layers
+    function addLayer() {
+      const input = document.getElementById('layer-upload');
+      const nameInput = document.getElementById('layer-name');
+      if (!input.files || !input.files.length) { showToast('Please select an image'); return; }
+
+      Array.from(input.files).forEach((file, i) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const name = nameInput.value.trim() || file.name.replace(/\.[^.]+$/, '') || `Layer ${layers.length + 1}`;
+          layers.push({ id: Date.now() + '_' + i, name: layers.length > 0 && !nameInput.value.trim() ? name : name, dataUrl: e.target.result });
+          renderLayers();
+        };
+        reader.readAsDataURL(file);
+      });
+      input.value = '';
+      nameInput.value = '';
+    }
+
+    function deleteLayer(id) {
+      layers = layers.filter(l => l.id !== id);
+      selectedLayers.delete(id);
+      renderLayers();
+    }
+
+    function editLayerName(id) {
+      const layer = layers.find(l => l.id === id);
+      if (!layer) return;
+      const card = document.querySelector(`[data-layer-id="${id}"]`);
+      const nameEl = card.querySelector('.layer-name');
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = layer.name;
+      input.className = 'bg-[#0f0f1a] border border-indigo-500 rounded px-2 py-1 text-xs text-white w-full focus:outline-none';
+      input.onblur = () => { layer.name = input.value || layer.name; renderLayers(); };
+      input.onkeydown = (e) => { if (e.key === 'Enter') input.blur(); };
+      nameEl.replaceWith(input);
+      input.focus();
+    }
+
+    function renderLayers() {
+      const list = document.getElementById('layers-list');
+      const empty = document.getElementById('layers-empty');
+      empty.classList.toggle('hidden', layers.length > 0);
+      list.innerHTML = layers.map(l => `
+        <div class="layer-card rounded-xl p-3 fade-in" data-layer-id="${l.id}">
+          <div class="layer-preview aspect-square rounded-lg overflow-hidden bg-[#0f0f1a] mb-2 flex items-center justify-center">
+            <img src="${l.dataUrl}" alt="${l.name}" class="w-full h-full object-contain" style="image-rendering:crisp-edges;">
+          </div>
+          <p class="layer-name text-xs font-medium truncate mb-2">${l.name}</p>
+          <div class="flex gap-1">
+            <button onclick="editLayerName('${l.id}')" class="flex-1 text-xs bg-[#2a2a4a] hover:bg-[#3a3a5a] rounded py-1 transition-all">Edit</button>
+            <button onclick="deleteLayer('${l.id}')" class="flex-1 text-xs bg-red-900/40 hover:bg-red-900/70 text-red-300 rounded py-1 transition-all">Delete</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Create NFT
+    function renderCreateLayers() {
+      const list = document.getElementById('create-layers-list');
+      if (!layers.length) { list.innerHTML = '<p class="col-span-3 text-center text-slate-500 text-sm py-4">Add layers first</p>'; return; }
+      list.innerHTML = layers.map(l => `
+        <div onclick="toggleSelect('${l.id}')" class="cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${selectedLayers.has(l.id) ? 'border-indigo-500 glow' : 'border-[#2a2a4a]'}">
+          <div class="aspect-square bg-[#0f0f1a] flex items-center justify-center">
+            <img src="${l.dataUrl}" alt="${l.name}" class="w-full h-full object-contain" style="image-rendering:crisp-edges;">
+          </div>
+          <p class="text-[10px] text-center py-1 truncate px-1">${l.name}</p>
+        </div>
+      `).join('');
+    }
+
+    function toggleSelect(id) {
+      if (selectedLayers.has(id)) selectedLayers.delete(id); else selectedLayers.add(id);
+      renderCreateLayers();
+    }
+
+    async function createNFT() {
+      if (!selectedLayers.size) { showToast('Select at least one layer'); return; }
+      const name = document.getElementById('nft-name').value.trim() || `NFT #${nfts.length + 1}`;
+      if (nfts.length >= 999) { showToast('Maximum 999 NFTs reached'); return; }
+
+      const btn = document.getElementById('btn-create-nft');
+      btn.disabled = true; btn.textContent = 'Generating...';
+
+      try {
+        // Composite layers onto canvas
+        const canvas = document.createElement('canvas');
+        canvas.width = 512; canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'rgba(0,0,0,0)';
+        ctx.fillRect(0, 0, 512, 512);
+
+        const selectedArr = layers.filter(l => selectedLayers.has(l.id));
+        
+        for (const layer of selectedArr) {
+          await new Promise((res, rej) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => { 
+              try {
+                ctx.drawImage(img, 0, 0, 512, 512); 
+                res(); 
+              } catch(e) { rej(e); }
+            };
+            img.onerror = () => rej(new Error('Image load failed'));
+            img.src = layer.dataUrl;
+          });
+        }
+
+        const thumbnail = canvas.toDataURL('image/png');
+        const layerNames = selectedArr.map(l => l.name).join('|');
+
+        const result = await window.dataSdk.create({
+          name,
+          layers: layerNames,
+          created_at: new Date().toISOString()
         });
-    </script>
-</body>
+
+        btn.disabled = false; 
+        btn.textContent = 'Generate NFT';
+
+        if (result.isOk) {
+          showToast(`"${name}" created successfully!`);
+          document.getElementById('nft-name').value = '';
+          selectedLayers.clear();
+          renderCreateLayers();
+          switchTab('collection');
+        } else {
+          showToast('Error: ' + (result.error?.message || 'Failed to create NFT'));
+        }
+      } catch(err) {
+        btn.disabled = false; 
+        btn.textContent = 'Generate NFT';
+        showToast('Error: ' + err.message);
+      }
+    }
+
+    // Collection
+    function renderCollection() {
+      const list = document.getElementById('nft-list');
+      const empty = document.getElementById('nft-empty');
+      const count = document.getElementById('nft-count');
+      empty.classList.toggle('hidden', nfts.length > 0);
+      count.textContent = nfts.length ? `${nfts.length} NFT${nfts.length > 1 ? 's' : ''} in collection` : '';
+
+      list.innerHTML = nfts.map(nft => `
+        <div class="nft-card rounded-2xl p-4 glow fade-in">
+          <div class="aspect-square rounded-xl overflow-hidden bg-[#0f0f1a] mb-3">
+            <img src="${nft.thumbnail || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22512%22 height=%22512%22%3E%3Crect fill=%22%231a1a2e%22 width=%22512%22 height=%22512%22/%3E%3C/svg%3E'}" alt="${nft.name}" class="w-full h-full object-contain" style="image-rendering:crisp-edges;">
+          </div>
+          <h3 class="font-semibold text-base mb-1">${nft.name}</h3>
+          <p class="text-xs text-slate-400 mb-3 mono">${(nft.layers || '').split('|').join(' + ')}</p>
+          <div class="flex gap-2">
+            <button onclick="downloadJSON('${nft.__backendId}')" class="flex-1 bg-[#2a2a4a] hover:bg-[#3a3a5a] rounded-lg py-2 text-xs font-medium transition-all flex items-center justify-center gap-1">
+              <i data-lucide="download" style="width:14px;height:14px"></i> JSON
+            </button>
+            <button onclick="deleteNFT('${nft.__backendId}')" class="flex-1 bg-red-900/30 hover:bg-red-900/60 text-red-300 rounded-lg py-2 text-xs font-medium transition-all flex items-center justify-center gap-1">
+              <i data-lucide="trash-2" style="width:14px;height:14px"></i> Delete
+            </button>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function downloadJSON(id) {
+      const nft = nfts.find(n => n.__backendId === id);
+      if (!nft) { showToast('NFT not found'); return; }
+      
+      try {
+        const metadata = {
+          name: nft.name,
+          description: `NFT generated with layers: ${(nft.layers || '').split('|').join(', ')}`,
+          attributes: (nft.layers || '').split('|').map((l, i) => ({ trait_type: `Layer ${i + 1}`, value: l })),
+          image: nft.thumbnail,
+          created_at: nft.created_at
+        };
+        
+        const jsonString = JSON.stringify(metadata, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${(nft.name || 'nft').replace(/\s+/g, '_').toLowerCase()}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showToast('JSON downloaded successfully!');
+      } catch(err) {
+        showToast('Error downloading JSON: ' + err.message);
+      }
+    }
+
+    async function deleteNFT(id) {
+      const nft = nfts.find(n => n.__backendId === id);
+      if (!nft) return;
+      const card = document.querySelector(`[data-nft-id="${id}"]`);
+      const result = await window.dataSdk.delete(nft);
+      if (!result.isOk) showToast('Error deleting NFT');
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.remove('hidden');
+      setTimeout(() => t.classList.add('hidden'), 2500);
+    }
+
+    lucide.createIcons();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9febe3c9b5733d91',t:'MTc3OTI4NTg1OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
