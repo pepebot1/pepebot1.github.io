@@ -12,7 +12,10 @@
     body { font-family: 'Outfit', sans-serif; background: #0f0f1a; color: #e2e8f0; }
     .mono { font-family: 'Space Mono', monospace; }
     .nft-card { background: linear-gradient(145deg, #1a1a2e, #16213e); border: 1px solid #2a2a4a; transition: all 0.2s; }
-    .section-card { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 1rem; }
+    .section-card { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 1rem; overflow: hidden; }
+    .section-header { cursor: pointer; transition: all 0.2s; user-select: none; }
+    .section-header:hover { background: rgba(99, 102, 241, 0.1); }
+    .section-content { transition: all 0.2s ease; }
     .layer-item { background: #0f0f1a; border: 1px solid #2a2a4a; border-radius: 0.75rem; transition: all 0.2s; cursor: pointer; }
     .layer-item.selected { border-color: #6366f1; box-shadow: 0 0 15px rgba(99,102,241,0.3); }
     .tab-active { background: #6366f1; color: white; }
@@ -45,8 +48,10 @@
       background: #1a1a2e; border-radius: 50%; padding: 2px;
       border: 1px solid #2a2a4a;
     }
-    .male-bg { background: rgba(37, 99, 235, 0.2); border-left: 3px solid #3b82f6; }
-    .female-bg { background: rgba(236, 72, 153, 0.2); border-left: 3px solid #ec4899; }
+    .male-bg { background: rgba(37, 99, 235, 0.15); border-left: 3px solid #3b82f6; }
+    .female-bg { background: rgba(236, 72, 153, 0.15); border-left: 3px solid #ec4899; }
+    .accordion-icon { transition: transform 0.2s; }
+    .rotate-180 { transform: rotate(180deg); }
   </style>
 </head>
 <body class="h-full overflow-auto">
@@ -54,7 +59,7 @@
   <!-- HEADER -->
   <header class="p-4 border-b border-[#2a2a4a] flex items-center justify-between bg-[#0f0f1a]/90 backdrop-blur-sm sticky top-0 z-10">
     <h1 class="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">NEXT PUNKS</h1>
-    <span class="mono text-xs text-slate-500">Male / Female Layers</span>
+    <span class="mono text-xs text-slate-500">Accordion Sections</span>
   </header>
 
   <!-- TABS -->
@@ -70,11 +75,11 @@
     </button>
   </div>
 
-  <!-- CONTENT -->
+  <!-- CONTENT - Normal scrolling, no sticky form -->
   <div class="flex-1 overflow-auto p-4">
     <!-- LAYERS PANEL -->
     <div id="panel-layers" class="space-y-4">
-      <!-- Add Layer Form -->
+      <!-- Add Layer Form - NOT STICKY, scrolls normally -->
       <div class="bg-[#1a1a2e] rounded-xl p-4 border border-[#2a2a4a]">
         <h3 class="text-sm font-semibold mb-3 text-indigo-300">Add New Layer from GitHub URL</h3>
         <div class="flex flex-col gap-3">
@@ -94,17 +99,16 @@
               <option value="Head">Head</option>
             </select>
           </div>
-          <!-- Gender Selection -->
           <div class="flex gap-3 items-center">
             <span class="text-sm text-slate-400">Gender (UI only):</span>
             <label class="flex items-center gap-2 cursor-pointer">
               <input type="radio" name="layer-gender" value="male" checked class="w-4 h-4 text-blue-500">
-              <img src="https://github.com/nextpunks/nextpunks.github.io/blob/main/Icon/male.png?raw=true" class="w-5 h-5" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%233b82f6%22 stroke-width=%222%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%224%22/%3E%3Cpath d=%22M12 2v4M12 18v4M2 12h4M18 12h4%22/%3E%3C/svg%3E'">
+              <img src="https://github.com/nextpunks/nextpunks.github.io/blob/main/Icon/male.png?raw=true" class="w-5 h-5" onerror="this.style.display='none'">
               <span class="text-xs text-blue-400">Male</span>
             </label>
             <label class="flex items-center gap-2 cursor-pointer">
               <input type="radio" name="layer-gender" value="female" class="w-4 h-4 text-pink-500">
-              <img src="https://github.com/nextpunks/nextpunks.github.io/blob/main/Icon/femenine.png?raw=true" class="w-5 h-5" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23ec4899%22 stroke-width=%222%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%224%22/%3E%3Cpath d=%22M12 2v4M12 18v4M2 12h4M18 12h4%22/%3E%3C/svg%3E'">
+              <img src="https://github.com/nextpunks/nextpunks.github.io/blob/main/Icon/femenine.png?raw=true" class="w-5 h-5" onerror="this.style.display='none'">
               <span class="text-xs text-pink-400">Female</span>
             </label>
           </div>
@@ -114,13 +118,13 @@
         </div>
       </div>
 
-      <!-- Info -->
       <div class="text-xs text-slate-400 bg-[#1a1a2e]/50 p-2 rounded-lg flex items-center gap-2 flex-wrap">
-        <img src="https://github.com/airdropfdi/airdropfdi.github.io/blob/main/Icon/drag-and-drop.png?raw=true" style="width:16px;height:16px;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2394a3b8%22 stroke-width=%222%22%3E%3Ccircle cx=%229%22 cy=%2212%22 r=%221%22/%3E%3Ccircle cx=%2215%22 cy=%2212%22 r=%221%22/%3E%3Ccircle cx=%229%22 cy=%2218%22 r=%221%22/%3E%3Ccircle cx=%2215%22 cy=%2218%22 r=%221%22/%3E%3C/svg%3E'">
-        Selection order = Layer order (first selected = bottom, last selected = top)
+        <img src="https://github.com/airdropfdi/airdropfdi.github.io/blob/main/Icon/drag-and-drop.png?raw=true" style="width:16px;height:16px;" onerror="this.style.display='none'">
+        Click on folder to expand/collapse | Selection order = first selected = bottom
       </div>
       
-      <div id="sections-container" class="space-y-4"></div>
+      <!-- Folders Container -->
+      <div id="sections-container" class="space-y-3"></div>
       <p id="layers-empty" class="text-center text-slate-500 text-sm py-12">No layers yet. Add GitHub image URLs above.</p>
     </div>
 
@@ -130,9 +134,11 @@
         <p class="text-sm text-indigo-300">Click on layers to select them in order</p>
         <p class="text-xs text-slate-400 mt-1">📌 First click = Bottom layer | Last click = Top layer</p>
         <p class="text-xs text-yellow-300 mt-1">🏷️ <strong>Base</strong> section = trait_type "Base" | Others = trait_type "Accessory"</p>
-        <p class="text-xs text-green-300 mt-1">⚧ Gender icons are UI only - not added to JSON</p>
+        <p class="text-xs text-green-300 mt-1">⚧ Click folder to expand/collapse sections</p>
       </div>
-      <div id="create-sections-container" class="space-y-4 max-h-[60vh] overflow-auto"></div>
+      
+      <div id="create-sections-container" class="space-y-3"></div>
+      
       <div class="bg-[#1a1a2e]/30 p-3 rounded-xl" id="selected-order-preview">
         <p class="text-xs text-slate-400">Selected layers order (bottom to top):</p>
         <div id="order-preview-list" class="flex flex-wrap gap-2 mt-2"></div>
@@ -165,13 +171,16 @@
   let nfts = [];
   let currentTab = 'layers';
   let nextId = 1;
+  
+  let openSectionLayers = null;
+  let openSectionCreate = null;
 
   const SECTIONS = ["Base", "Nose", "Neck", "Face", "Accessory", "Mouth", "Ear", "Beard", "Eyes", "Head"];
 
   function loadFromStorage() {
     try {
       const storedSections = localStorage.getItem('nft_layers_sections_gender');
-      const storedNFTs = localStorage.getItem('nft_collection_v10');
+      const storedNFTs = localStorage.getItem('nft_collection_v13');
       if (storedSections) layersBySection = JSON.parse(storedSections);
       if (storedNFTs) nfts = JSON.parse(storedNFTs);
       for (let section of SECTIONS) {
@@ -185,7 +194,7 @@
 
   function saveToStorage() {
     localStorage.setItem('nft_layers_sections_gender', JSON.stringify(layersBySection));
-    localStorage.setItem('nft_collection_v10', JSON.stringify(nfts));
+    localStorage.setItem('nft_collection_v13', JSON.stringify(nfts));
   }
 
   window.switchTab = function(tab) {
@@ -203,7 +212,6 @@
     lucide.createIcons();
   };
 
-  // ========== ADD LAYER FROM URL with Gender ==========
   window.addLayerFromURL = function() {
     const urlInput = document.getElementById('github-url');
     const valueInput = document.getElementById('layer-value');
@@ -254,7 +262,24 @@
     }
   };
 
-  // ========== RENDER LAYERS PANEL with Gender Icons ==========
+  function toggleSectionLayers(section) {
+    if (openSectionLayers === section) {
+      openSectionLayers = null;
+    } else {
+      openSectionLayers = section;
+    }
+    renderSections();
+  }
+
+  function toggleSectionCreate(section) {
+    if (openSectionCreate === section) {
+      openSectionCreate = null;
+    } else {
+      openSectionCreate = section;
+    }
+    renderCreateSections();
+  }
+
   function renderSections() {
     const container = document.getElementById('sections-container');
     const empty = document.getElementById('layers-empty');
@@ -264,80 +289,101 @@
     for (let section of SECTIONS) {
       const layers = layersBySection[section] || [];
       if (layers.length > 0) hasAny = true;
+      const isOpen = openSectionLayers === section;
       const traitTypeLabel = section === "Base" ? "Base" : "Accessory";
+      const layerCount = layers.length;
+      
       html += `
-        <div class="section-card p-4">
-          <h3 class="text-md font-bold text-indigo-300 mb-3 flex items-center gap-2">
-            <i data-lucide="folder" style="width:18px"></i> ${section}
-            <span class="text-xs text-slate-500 ml-2">(${layers.length} layers)</span>
-            <span class="text-xs bg-indigo-900/50 px-2 py-0.5 rounded-full">trait_type: ${traitTypeLabel}</span>
-          </h3>
-          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-            ${layers.map(layer => `
-              <div class="layer-item p-2 relative ${layer.gender === 'male' ? 'male-bg' : 'female-bg'}">
-                <img src="${layer.gender === 'male' ? 'https://github.com/nextpunks/nextpunks.github.io/blob/main/Icon/male.png?raw=true' : 'https://github.com/nextpunks/nextpunks.github.io/blob/main/Icon/femenine.png?raw=true'}" 
-                     class="gender-icon" onerror="this.style.display='none'">
-                <div class="aspect-square rounded-lg overflow-hidden bg-[#0f0f1a] mb-2">
-                  <img src="${layer.imageUrl}" alt="${layer.value}" class="w-full h-full object-contain" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23333333%22/%3E%3Ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22white%22%3EError%3C/text%3E%3C/svg%3E'">
+        <div class="section-card">
+          <div onclick="window.toggleSectionLayers('${section}')" class="section-header p-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <i data-lucide="folder" style="width:20px" class="text-indigo-400"></i>
+              <span class="font-bold text-indigo-300">${section}</span>
+              <span class="text-xs text-slate-500">(${layerCount} layers)</span>
+              <span class="text-xs bg-indigo-900/50 px-2 py-0.5 rounded-full">trait_type: ${traitTypeLabel}</span>
+            </div>
+            <i data-lucide="chevron-down" style="width:18px" class="accordion-icon text-slate-400 ${isOpen ? 'rotate-180' : ''}"></i>
+          </div>
+          <div class="section-content ${isOpen ? '' : 'hidden'} p-4 pt-0 border-t border-[#2a2a4a]">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 mt-3">
+              ${layers.map(layer => `
+                <div class="layer-item p-2 relative ${layer.gender === 'male' ? 'male-bg' : 'female-bg'}">
+                  <img src="${layer.gender === 'male' ? 'https://github.com/nextpunks/nextpunks.github.io/blob/main/Icon/male.png?raw=true' : 'https://github.com/nextpunks/nextpunks.github.io/blob/main/Icon/femenine.png?raw=true'}" 
+                       class="gender-icon" onerror="this.style.display='none'">
+                  <div class="aspect-square rounded-lg overflow-hidden bg-[#0f0f1a] mb-2">
+                    <img src="${layer.imageUrl}" alt="${layer.value}" class="w-full h-full object-contain" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23333333%22/%3E%3Ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22white%22%3EError%3C/text%3E%3C/svg%3E'">
+                  </div>
+                  <p class="text-xs font-medium text-center truncate">${escapeHtml(layer.value)}</p>
+                  <p class="text-[9px] text-center ${layer.gender === 'male' ? 'text-blue-400' : 'text-pink-400'}">${layer.gender === 'male' ? '♂ Male' : '♀ Female'}</p>
+                  <button onclick="window.deleteLayer('${section}', '${layer.id}')" class="w-full mt-2 text-xs bg-red-900/40 hover:bg-red-900/70 text-red-300 rounded-lg py-1 transition-all">Delete</button>
                 </div>
-                <p class="text-xs font-medium text-center truncate">${escapeHtml(layer.value)}</p>
-                <p class="text-[9px] text-center ${layer.gender === 'male' ? 'text-blue-400' : 'text-pink-400'}">${layer.gender === 'male' ? '♂ Male' : '♀ Female'}</p>
-                <button onclick="window.deleteLayer('${section}', '${layer.id}')" class="w-full mt-2 text-xs bg-red-900/40 hover:bg-red-900/70 text-red-300 rounded-lg py-1 transition-all">Delete</button>
-              </div>
-            `).join('')}
+              `).join('')}
+            </div>
           </div>
         </div>
       `;
     }
+    
     empty.classList.toggle('hidden', hasAny);
     container.innerHTML = html;
     lucide.createIcons();
   }
 
-  // ========== RENDER CREATE PANEL with Gender Icons ==========
   function renderCreateSections() {
     const container = document.getElementById('create-sections-container');
     if (!container) return;
     
     let html = '';
+    let hasAnyLayer = false;
+    
     for (let section of SECTIONS) {
       const layers = layersBySection[section] || [];
       if (layers.length === 0) continue;
+      hasAnyLayer = true;
       
+      const isOpen = openSectionCreate === section;
       const selectedItem = selectedOrder.find(item => item.section === section);
       const selectedId = selectedItem ? selectedItem.layerId : null;
       const traitTypeLabel = section === "Base" ? "Base" : "Accessory";
+      const layerCount = layers.length;
       
       html += `
-        <div class="section-card p-4">
-          <h3 class="text-sm font-bold text-indigo-300 mb-3 flex items-center gap-2">
-            <i data-lucide="image" style="width:16px"></i> ${section}
-            <span class="text-xs bg-indigo-900/50 px-2 py-0.5 rounded-full">${traitTypeLabel}</span>
-            ${selectedItem ? `<span class="text-xs text-green-400 ml-2">✓ Selected (Order: ${selectedItem.order})</span>` : ''}
-          </h3>
-          <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-            ${layers.map(layer => {
-              const isSelected = selectedId === layer.id;
-              const orderNum = isSelected ? selectedOrder.find(item => item.layerId === layer.id)?.order : null;
-              return `
-                <div onclick="window.toggleLayerSelection('${section}', '${layer.id}', '${escapeAttr(layer.value)}', '${escapeAttr(layer.imageUrl)}', '${layer.gender}')" 
-                     class="layer-item p-2 relative ${isSelected ? 'selected' : ''} ${layer.gender === 'male' ? 'male-bg' : 'female-bg'}">
-                  ${isSelected && orderNum ? `<div class="order-number">${orderNum}</div>` : ''}
-                  <img src="${layer.gender === 'male' ? 'https://github.com/nextpunks/nextpunks.github.io/blob/main/Icon/male.png?raw=true' : 'https://github.com/nextpunks/nextpunks.github.io/blob/main/Icon/femenine.png?raw=true'}" 
-                       class="gender-icon" onerror="this.style.display='none'">
-                  <div class="aspect-square rounded-lg overflow-hidden bg-[#0f0f1a] mb-1">
-                    <img src="${layer.imageUrl}" alt="${layer.value}" class="w-full h-full object-contain" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23333333%22/%3E%3Ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22white%22%3E?%3C/text%3E%3C/svg%3E'">
+        <div class="section-card">
+          <div onclick="window.toggleSectionCreate('${section}')" class="section-header p-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <i data-lucide="folder" style="width:20px" class="text-indigo-400"></i>
+              <span class="font-bold text-indigo-300">${section}</span>
+              <span class="text-xs text-slate-500">(${layerCount} layers)</span>
+              <span class="text-xs bg-indigo-900/50 px-2 py-0.5 rounded-full">${traitTypeLabel}</span>
+              ${selectedItem ? `<span class="text-xs text-green-400">✓ Selected (Order: ${selectedItem.order})</span>` : ''}
+            </div>
+            <i data-lucide="chevron-down" style="width:18px" class="accordion-icon text-slate-400 ${isOpen ? 'rotate-180' : ''}"></i>
+          </div>
+          <div class="section-content ${isOpen ? '' : 'hidden'} p-4 pt-0 border-t border-[#2a2a4a]">
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 mt-3">
+              ${layers.map(layer => {
+                const isSelected = selectedId === layer.id;
+                const orderNum = isSelected ? selectedOrder.find(item => item.layerId === layer.id)?.order : null;
+                return `
+                  <div onclick="window.toggleLayerSelection('${section}', '${layer.id}', '${escapeAttr(layer.value)}', '${escapeAttr(layer.imageUrl)}', '${layer.gender}')" 
+                       class="layer-item p-2 relative ${isSelected ? 'selected' : ''} ${layer.gender === 'male' ? 'male-bg' : 'female-bg'}">
+                    ${isSelected && orderNum ? `<div class="order-number">${orderNum}</div>` : ''}
+                    <img src="${layer.gender === 'male' ? 'https://github.com/nextpunks/nextpunks.github.io/blob/main/Icon/male.png?raw=true' : 'https://github.com/nextpunks/nextpunks.github.io/blob/main/Icon/femenine.png?raw=true'}" 
+                         class="gender-icon" onerror="this.style.display='none'">
+                    <div class="aspect-square rounded-lg overflow-hidden bg-[#0f0f1a] mb-1">
+                      <img src="${layer.imageUrl}" alt="${layer.value}" class="w-full h-full object-contain" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23333333%22/%3E%3Ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22white%22%3E?%3C/text%3E%3C/svg%3E'">
+                    </div>
+                    <p class="text-[10px] text-center truncate">${escapeHtml(layer.value)}</p>
                   </div>
-                  <p class="text-[10px] text-center truncate">${escapeHtml(layer.value)}</p>
-                </div>
-              `;
-            }).join('')}
+                `;
+              }).join('')}
+            </div>
           </div>
         </div>
       `;
     }
     
-    if (html === '') {
+    if (!hasAnyLayer) {
       container.innerHTML = '<div class="text-center text-slate-500 py-8">No layers added yet. Go to Layers tab and add GitHub images.</div>';
     } else {
       container.innerHTML = html;
@@ -350,7 +396,6 @@
     return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
   }
 
-  // ========== TOGGLE SELECTION ==========
   window.toggleLayerSelection = function(section, layerId, value, imageUrl, gender) {
     const existingIndex = selectedOrder.findIndex(item => item.section === section);
     
@@ -397,7 +442,6 @@
     previewDiv.innerHTML = previewHtml;
   }
 
-  // ========== COMPOSITE IMAGE ==========
   async function compositeFromSelected() {
     const canvas = document.createElement('canvas');
     canvas.width = 512;
@@ -417,7 +461,6 @@
     return canvas.toDataURL('image/png');
   }
 
-  // ========== CREATE NFT ==========
   window.createNFT = async function() {
     if (selectedOrder.length === 0) {
       window.showToast('Please select at least one layer');
@@ -437,12 +480,10 @@
     try {
       const imageData = await compositeFromSelected();
       
-      // Build attributes: Base section = "Base" trait_type, others = "Accessory"
       const attributes = selectedOrder.map(item => ({
         trait_type: item.section === "Base" ? "Base" : "Accessory",
         value: item.value
       }));
-      // Last attribute: "Attribute Count" instead of "Total Layers"
       attributes.push({ trait_type: "Attribute Count", value: selectedOrder.length.toString() });
       
       const cidPlaceholder = "cid://QmPlaceholder_ReplaceWithActualCID";
@@ -477,7 +518,6 @@
     }
   };
 
-  // ========== COLLECTION FUNCTIONS ==========
   function renderCollection() {
     const container = document.getElementById('nft-list');
     const empty = document.getElementById('nft-empty');
@@ -594,6 +634,9 @@
     toast.classList.remove('hidden');
     setTimeout(() => toast.classList.add('hidden'), 2500);
   };
+
+  window.toggleSectionLayers = toggleSectionLayers;
+  window.toggleSectionCreate = toggleSectionCreate;
 
   const styleSheet = document.createElement('style');
   styleSheet.textContent = `@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } .animate-spin { animation: spin 1s linear infinite; }`;
