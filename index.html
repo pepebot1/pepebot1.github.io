@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>NFT Layer Studio | GitHub Image Layers</title>
+  <title>NEXT PUNK</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -40,14 +40,22 @@
       border-radius: 50%; width: 22px; height: 22px; font-size: 11px;
       display: flex; align-items: center; justify-content: center; font-weight: bold;
     }
+    .trait-type-badge {
+      font-size: 9px;
+      background: #2a2a4a;
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 12px;
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body class="h-full overflow-auto">
 <div id="app" class="w-full h-full flex flex-col">
   <!-- HEADER -->
   <header class="p-4 border-b border-[#2a2a4a] flex items-center justify-between bg-[#0f0f1a]/90 backdrop-blur-sm sticky top-0 z-10">
-    <h1 class="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">NFT Layer Studio</h1>
-    <span class="mono text-xs text-slate-500">GitHub Images · Order by Selection</span>
+    <h1 class="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">NEXT PUNKS</h1>
+    <span class="mono text-xs text-slate-500">Base + Accessories</span>
   </header>
 
   <!-- TABS -->
@@ -73,16 +81,18 @@
         <div class="flex flex-col gap-3">
           <input type="text" id="github-url" placeholder="GitHub Raw Image URL" class="w-full bg-[#0f0f1a] border border-[#2a2a4a] rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
           <div class="flex flex-col sm:flex-row gap-3">
-            <input type="text" id="layer-value" placeholder="Value (e.g., Red Hair)" class="flex-1 bg-[#0f0f1a] border border-[#2a2a4a] rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+            <input type="text" id="layer-value" placeholder="Value (e.g., Red Hair, Blue Skin)" class="flex-1 bg-[#0f0f1a] border border-[#2a2a4a] rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
             <select id="layer-section" class="flex-1 bg-[#0f0f1a] border border-[#2a2a4a] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500">
-              <option value="Background">Background</option>
-              <option value="Head">Head</option>
-              <option value="Eyes">Eyes</option>
-              <option value="Glasses">Glasses</option>
-              <option value="Mouth">Mouth</option>
-              <option value="Hat">Hat</option>
+              <option value="Base">Base (trait_type: Base)</option>
+              <option value="Nose">Nose</option>
+              <option value="Neck">Neck</option>
+              <option value="Face">Face</option>
               <option value="Accessory">Accessory</option>
-              <option value="Clothes">Clothes</option>
+              <option value="Mouth">Mouth</option>
+              <option value="Ear">Ear</option>
+              <option value="Beard">Beard</option>
+              <option value="Eyes">Eyes</option>
+              <option value="Head">Head</option>
             </select>
           </div>
           <button onclick="window.addLayerFromURL()" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-5 py-3 font-medium transition-all flex items-center justify-center gap-2">
@@ -107,6 +117,7 @@
         <p class="text-sm text-indigo-300">Click on layers to select them in order</p>
         <p class="text-xs text-slate-400 mt-1">📌 First click = Bottom layer (Background) | Last click = Top layer (Foreground)</p>
         <p class="text-xs text-indigo-300 mt-1">✓ Selected layers show order number</p>
+        <p class="text-xs text-yellow-300 mt-1">🏷️ <strong>Base</strong> section = trait_type "Base" | Others = trait_type "Accessory"</p>
       </div>
       <div id="create-sections-container" class="space-y-4 max-h-[60vh] overflow-auto"></div>
       <div class="bg-[#1a1a2e]/30 p-3 rounded-xl" id="selected-order-preview">
@@ -135,7 +146,7 @@
 <script>
   // ========== STATE ==========
   let layersBySection = {
-    "Background": [], "Head": [], "Eyes": [], "Glasses": [], "Mouth": [], "Hat": [], "Accessory": [], "Clothes": []
+    "Base": [], "Nose": [], "Neck": [], "Face": [], "Accessory": [], "Mouth": [], "Ear": [], "Beard": [], "Eyes": [], "Head": []
   };
   // selectedOrder: array of { section, layerId, value, imageUrl } in selection order
   let selectedOrder = [];
@@ -143,7 +154,7 @@
   let currentTab = 'layers';
   let nextId = 1;
 
-  const SECTIONS = ["Background", "Head", "Eyes", "Glasses", "Mouth", "Hat", "Accessory", "Clothes"];
+  const SECTIONS = ["Base", "Nose", "Neck", "Face", "Accessory", "Mouth", "Ear", "Beard", "Eyes", "Head"];
 
   function loadFromStorage() {
     try {
@@ -151,8 +162,9 @@
       const storedNFTs = localStorage.getItem('nft_collection_v8');
       if (storedSections) layersBySection = JSON.parse(storedSections);
       if (storedNFTs) nfts = JSON.parse(storedNFTs);
-      if (!layersBySection["Background"]) {
-        layersBySection = { "Background": [], "Head": [], "Eyes": [], "Glasses": [], "Mouth": [], "Hat": [], "Accessory": [], "Clothes": [] };
+      // Ensure all sections exist
+      for (let section of SECTIONS) {
+        if (!layersBySection[section]) layersBySection[section] = [];
       }
     } catch(e) { console.warn(e); }
     renderSections();
@@ -236,11 +248,13 @@
     for (let section of SECTIONS) {
       const layers = layersBySection[section] || [];
       if (layers.length > 0) hasAny = true;
+      const traitTypeLabel = section === "Base" ? "Base" : "Accessory";
       html += `
         <div class="section-card p-4">
           <h3 class="text-md font-bold text-indigo-300 mb-3 flex items-center gap-2">
             <i data-lucide="folder" style="width:18px"></i> ${section}
             <span class="text-xs text-slate-500 ml-2">(${layers.length} layers)</span>
+            <span class="text-xs bg-indigo-900/50 px-2 py-0.5 rounded-full">trait_type: ${traitTypeLabel}</span>
           </h3>
           <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             ${layers.map(layer => `
@@ -273,11 +287,13 @@
       
       const selectedItem = selectedOrder.find(item => item.section === section);
       const selectedId = selectedItem ? selectedItem.layerId : null;
+      const traitTypeLabel = section === "Base" ? "Base" : "Accessory";
       
       html += `
         <div class="section-card p-4">
           <h3 class="text-sm font-bold text-indigo-300 mb-3 flex items-center gap-2">
             <i data-lucide="image" style="width:16px"></i> ${section}
+            <span class="text-xs bg-indigo-900/50 px-2 py-0.5 rounded-full">${traitTypeLabel}</span>
             ${selectedItem ? `<span class="text-xs text-green-400 ml-2">✓ Selected (Order: ${selectedItem.order})</span>` : ''}
           </h3>
           <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
@@ -345,13 +361,17 @@
       return;
     }
     
-    const previewHtml = selectedOrder.map(item => `
-      <span class="text-xs bg-indigo-900/50 px-2 py-1 rounded-full flex items-center gap-1">
-        <span class="text-indigo-300 font-bold">${item.order}</span>
-        <span>${escapeHtml(item.section)}:</span>
-        <span class="text-white">${escapeHtml(item.value)}</span>
-      </span>
-    `).join('');
+    const previewHtml = selectedOrder.map(item => {
+      const traitLabel = item.section === "Base" ? "Base" : "Acc";
+      return `
+        <span class="text-xs bg-indigo-900/50 px-2 py-1 rounded-full flex items-center gap-1">
+          <span class="text-indigo-300 font-bold">${item.order}</span>
+          <span class="text-yellow-300 text-[10px]">${traitLabel}</span>
+          <span>${escapeHtml(item.section)}:</span>
+          <span class="text-white">${escapeHtml(item.value)}</span>
+        </span>
+      `;
+    }).join('');
     
     previewDiv.innerHTML = previewHtml;
   }
@@ -397,9 +417,9 @@
     try {
       const imageData = await compositeFromSelected();
       
-      // Build attributes: all have trait_type "Accessory"
+      // Build attributes: Base section = "Base" trait_type, others = "Accessory"
       const attributes = selectedOrder.map(item => ({
-        trait_type: "Accessory",
+        trait_type: item.section === "Base" ? "Base" : "Accessory",
         value: item.value
       }));
       attributes.push({ trait_type: "Total Layers", value: selectedOrder.length.toString() });
@@ -454,7 +474,7 @@
           <img src="${nft.image}" alt="${escapeHtml(nft.name)}" class="w-full h-full object-contain">
         </div>
         <h3 class="font-semibold text-base mb-1 truncate">${escapeHtml(nft.name)}</h3>
-        <p class="text-xs text-slate-400 mb-3 mono">${nft.attributes.length - 1} Accessories</p>
+        <p class="text-xs text-slate-400 mb-3 mono">${nft.attributes.length - 1} attributes</p>
         <div class="flex gap-2" onclick="event.stopPropagation()">
           <button onclick="window.downloadJSON('${nft.id}')" class="flex-1 bg-[#2a2a4a] hover:bg-[#3a3a5a] rounded-xl py-2 text-xs font-medium flex items-center justify-center gap-1"><i data-lucide="file-json" style="width:14px"></i> JSON</button>
           <button onclick="window.downloadImage('${nft.id}')" class="flex-1 bg-[#2a2a4a] hover:bg-[#3a3a5a] rounded-xl py-2 text-xs font-medium flex items-center justify-center gap-1"><i data-lucide="image" style="width:14px"></i> Image</button>
@@ -488,7 +508,7 @@
         </div>
         <div class="mb-3"><span class="text-slate-400 text-xs">Description</span><p class="text-sm mt-1 bg-[#1a1a2e] p-2 rounded-lg">${escapeHtml(nft.description)}</p></div>
         <div class="mb-3"><span class="text-slate-400 text-xs">CID Placeholder</span><p class="text-xs font-mono mt-1 bg-indigo-900/30 p-2 rounded-lg">${escapeHtml(nft.cidPlaceholder)}</p></div>
-        <div><span class="text-slate-400 text-xs">Attributes (All trait_type = "Accessory")</span><div class="flex flex-wrap gap-2 mt-2">${attrsHtml}</div></div>
+        <div><span class="text-slate-400 text-xs">Attributes</span><div class="flex flex-wrap gap-2 mt-2">${attrsHtml}</div></div>
         <div class="mt-5 flex gap-2">
           <button onclick="window.downloadJSON('${nft.id}'); this.closest('.modal-backdrop').remove();" class="flex-1 bg-indigo-600 hover:bg-indigo-700 py-2.5 rounded-xl text-sm font-medium">Download JSON</button>
           <button onclick="window.downloadImage('${nft.id}');" class="flex-1 bg-purple-600 hover:bg-purple-700 py-2.5 rounded-xl text-sm font-medium">Download Image</button>
